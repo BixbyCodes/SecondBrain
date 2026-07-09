@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Secrets & environment variables — NEVER commit these
+.env
+.env.*
+!.env.example
+
+# Compiled output
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor cruft
+.DS_Store
+.vscode/
