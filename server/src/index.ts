@@ -3,10 +3,14 @@ import express from "express";
 import mongoose from "mongoose";
 import Note from "./models/Note.js";
 import noteRoutes from "./routes/noteRoutes.js"; 
-import "dotenv/config";  
+import "dotenv/config"; 
+ import authRoutes from "./routes/authRoutes.js";
+import { protect } from "./middleware/authMiddleware.js";
+
 const app = express();
 app.use(express.json()); 
-
+app.use("/auth", authRoutes);
+app.use("/notes", protect, noteRoutes); 
 app.use("/notes", noteRoutes); 
 const PORT = process.env.PORT || 3000; 
 

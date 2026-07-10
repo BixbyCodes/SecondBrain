@@ -5,7 +5,8 @@ const router = express.Router();
 
 router.post("/", async (req, res) => {
   try {
-    const newNote = await Note.create(req.body);
+
+    const newNote = await Note.create({ ...req.body, owner: req.userId });
     res.status(201).json(newNote);
   } catch (error) {
     res.status(400).json({ message: "Failed to create note", error });
@@ -15,7 +16,7 @@ router.post("/", async (req, res) => {
 
 router.get("/",async(req,res)=>{
     try{
-    const allNotes = await Note.find();
+     const allNotes = await Note.find({ owner: req.userId });
     res.json(allNotes);
     }catch(error){
          res.status(500).json({ message: "Something went wrong", error });
@@ -23,7 +24,7 @@ router.get("/",async(req,res)=>{
 })
 router.get("/:id",async (req,res)=>{
     try{
-    const notesId = await Note.findById(req.params.id);
+    const notesId = await Note.findOne({ _id: req.params.id, owner: req.userId });
      if (!notesId) {
       return res.status(404).json({ message: "Note not found" });  // ← the real 404
     }
@@ -35,10 +36,10 @@ router.get("/:id",async (req,res)=>{
 
 router.patch("/:id",async(req,res)=>{
     try{
-  const notesId = await Note.findByIdAndUpdate(
-  req.params.id,                          // 1: which note
-  req.body,                               // 2: the fields to change
-  { new: true, runValidators: true }      // 3: the options
+  const notesId = await Note.findOneAndUpdate(
+  { _id: req.params.id, owner: req.userId },  // only find it if it's THIS user's note
+  req.body,                                   // the fields to change
+  { new: true, runValidators: true }          // the options
 );
 
     if (!notesId) {
@@ -51,7 +52,7 @@ router.patch("/:id",async(req,res)=>{
 })
 router.delete("/:id", async (req, res) => {
   try {
-    const notesId = await Note.findByIdAndDelete(req.params.id);   // ① pass the id!
+    const notesId = await Note.findOneAndDelete({ _id: req.params.id, owner: req.userId });
 
     if (!notesId) {                                                 // ② null → 404
       return res.status(404).json({ message: "Note not found" });
@@ -62,19 +63,6 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ message: "Something went wrong", error });
   }
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
