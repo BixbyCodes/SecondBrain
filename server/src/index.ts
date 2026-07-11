@@ -9,9 +9,12 @@ import { protect } from "./middleware/authMiddleware.js";
 
 const app = express();
 app.use(express.json()); 
+import cors from "cors";
+
+app.use(cors());          // allow requests from your frontend (dev: allow all)
+
 app.use("/auth", authRoutes);
-app.use("/notes", protect, noteRoutes); 
-app.use("/notes", noteRoutes); 
+app.use("/notes", protect, noteRoutes);
 const PORT = process.env.PORT || 3000; 
 
 app.get("/",(req,res) =>{
