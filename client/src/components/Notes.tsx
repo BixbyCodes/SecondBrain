@@ -1,4 +1,5 @@
 import { useState, useEffect, type FormEvent } from 'react'
+import Chat from './Chat'
 
 type Note = { _id: string; title: string; content: string }
 
@@ -52,6 +53,8 @@ function Notes({ token, onLogout }: NotesProps) {
         <h1>My Notes</h1>
         <button className="btn btn-ghost" onClick={onLogout}>Log out</button>
       </header>
+
+      <Chat token={token} />
 
       <form className="note-form" onSubmit={handleCreate}>
         <input
