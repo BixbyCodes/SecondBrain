@@ -47,30 +47,40 @@ function Notes({ token, onLogout }: NotesProps) {
   }
 
   return (
-    <div>
-      <h1>My Notes</h1>
-      <button onClick={onLogout}>Log out</button>
+    <div className="app">
+      <header className="topbar">
+        <h1>My Notes</h1>
+        <button className="btn btn-ghost" onClick={onLogout}>Log out</button>
+      </header>
 
-      <form onSubmit={handleCreate}>
+      <form className="note-form" onSubmit={handleCreate}>
         <input
+          className="input"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Title"
         />
         <textarea
+          className="input textarea"
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Write your note..."
         />
-        <button type="submit">Add note</button>
+        <button className="btn btn-primary" type="submit">Add note</button>
       </form>
 
-      {notes.map((note) => (
-        <div key={note._id}>
-          <h3>{note.title}</h3>
-          <p>{note.content}</p>
+      {notes.length === 0 ? (
+        <p className="empty">No notes yet — add your first one above ✍️</p>
+      ) : (
+        <div className="notes-list">
+          {notes.map((note) => (
+            <div key={note._id} className="note-card">
+              <h3>{note.title}</h3>
+              <p>{note.content}</p>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
     </div>
   )
 }
