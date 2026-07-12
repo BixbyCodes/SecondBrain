@@ -1,20 +1,27 @@
+import "dotenv/config"; 
 import express from "express";
 
 import mongoose from "mongoose";
 import Note from "./models/Note.js";
 import noteRoutes from "./routes/noteRoutes.js"; 
-import "dotenv/config"; 
+
  import authRoutes from "./routes/authRoutes.js";
 import { protect } from "./middleware/authMiddleware.js";
+import cors from "cors";
+import aiRoutes from "./routes/aiRoutes.js";
+
+
 
 const app = express();
+
 app.use(express.json()); 
-import cors from "cors";
+
 
 app.use(cors());          // allow requests from your frontend (dev: allow all)
 
 app.use("/auth", authRoutes);
 app.use("/notes", protect, noteRoutes);
+app.use("/ai", aiRoutes);
 const PORT = process.env.PORT || 3000; 
 
 app.get("/",(req,res) =>{
