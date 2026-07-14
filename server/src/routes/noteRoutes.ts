@@ -1,12 +1,16 @@
 import express from "express";
 import Note from "../models/Note.js";
+import { getEmbedding } from "../lib/embedding.js";
+
 const router = express.Router();
 
 
 router.post("/", async (req, res) => {
   try {
+    const embedding = await getEmbedding(`${req.body.title}\n${req.body.content}`);
+const newNote = await Note.create({ ...req.body, owner: req.userId, embedding });
+console.log("Embedding length:", embedding.length);
 
-    const newNote = await Note.create({ ...req.body, owner: req.userId });
     res.status(201).json(newNote);
   } catch (error) {
     res.status(400).json({ message: "Failed to create note", error });

@@ -2,6 +2,8 @@ import express from "express";
 import { protect } from "../middleware/authMiddleware.js";
 import { GoogleGenAI } from "@google/genai";
 import Note from "../models/Note.js";
+import { getEmbedding } from "../lib/embedding.js";
+import mongoose from "mongoose";
 
 const router = express.Router();
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -29,8 +31,20 @@ router.post("/chat", protect, async (req, res) => {
       return res.status(400).json({ message: "Question is required" });
     }
 
-    // 1) RETRIEVE — get this user's notes
-    const notes = await Note.find({ owner: req.userId });
+    // 1) RETRIEVE — embed the question, then vector-search for the most relevant notes
+    const questionEmbedding = await getEmbedding(question);
+    const notes = await Note.aggregate([
+      {
+        $vectorSearch: {
+          index: "note_vector_index",
+          path: "embedding",
+          queryVector: questionEmbedding,
+          numCandidates: 100,
+          limit: 3,
+          filter: { owner: new mongoose.Types.ObjectId(req.userId) },
+        },
+      },
+    ]);
 
     // 2) AUGMENT — turn the notes into context and build the prompt
     const context = notes

@@ -4,6 +4,7 @@ interface INote{
     content:string,
       tags:string[],
       imageUrls:string[],
+      embedding? : number[];
       owner: mongoose.Types.ObjectId;
 
 }
@@ -14,8 +15,8 @@ const noteSchema = new mongoose.Schema<INote>(
             required:true,
         },
         owner: {
-  type: mongoose.Schema.Types.ObjectId,   // stores a reference to another document's _id
-  ref: "User",                              // that document lives in the User collection
+  type: mongoose.Schema.Types.ObjectId,  
+  ref: "User",                          
   required: true,
 },
 
@@ -23,6 +24,8 @@ const noteSchema = new mongoose.Schema<INote>(
             type:String,
             required:true,
         },
+        embedding: { type: [Number], default: [] },
+
         tags:{
            type: [String], default: [] 
         },
