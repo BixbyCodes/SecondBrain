@@ -9,6 +9,9 @@ import noteRoutes from "./routes/noteRoutes.js";
 import { protect } from "./middleware/authMiddleware.js";
 import cors from "cors";
 import aiRoutes from "./routes/aiRoutes.js";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import jwt from "jsonwebtoken";
 
 
 
@@ -32,15 +35,33 @@ app.get("/health",(req,res)=>{
     res.json({status:"ok"});
 })
 
+const httpServer = createServer(app);         
+const io = new Server(httpServer, {
+  cors: { origin: "http://localhost:5173" },   
+});
+app.set("io", io);                           
+
+
+io.on("connection", (socket) => {
+  try {
+    const token = socket.handshake.auth.token;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { userId: string };
+    socket.join(`user:${decoded.userId}`);     
+    console.log("🔌 socket connected:", decoded.userId);
+  } catch {
+    socket.disconnect();                         
+  }
+});
 
 
 async function startServer(){
     try{
         await mongoose.connect(process.env.MONGODB_URI as string)
          console.log("MongoDB connected");
-         app.listen(PORT,()=>{
-            console.log(`Server running at http://localhost:${PORT}`);
-         });
+         httpServer.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
+});
+
     
     }catch (error){
         console.error("❌ Failed to connect to MongoDB", error);

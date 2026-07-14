@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+
 interface INote{
     title:string,
     content:string,
@@ -8,6 +9,7 @@ interface INote{
       owner: mongoose.Types.ObjectId;
 
 }
+
 const noteSchema = new mongoose.Schema<INote>(
     {
         title:{

@@ -1,4 +1,5 @@
 import { useState, useEffect, type FormEvent } from 'react'
+import { io } from 'socket.io-client'
 import Chat from './Chat'
 
 type Note = { _id: string; title: string; content: string }
@@ -25,6 +26,17 @@ function Notes({ token, onLogout }: NotesProps) {
     fetchNotes()
   }, [])
 
+  // connect to the live socket; add any note that gets pushed to us
+  useEffect(() => {
+    const socket = io('http://localhost:3000', { auth: { token } })
+
+    socket.on('noteCreated', (note: Note) => {
+      setNotes((prev) => [note, ...prev])
+    })
+
+    return () => { socket.disconnect() }
+  }, [])
+
   // create a new note — a sibling of useEffect, so the form below can reach it
   async function handleCreate(e: FormEvent) {
     e.preventDefault()
@@ -42,7 +54,7 @@ function Notes({ token, onLogout }: NotesProps) {
       return
     }
 
-    setNotes([newNote, ...notes]) // add the new note to the top (new array, not a mutation)
+    // no local add — the socket 'noteCreated' event updates the list on every tab
     setTitle('')
     setContent('')
   }

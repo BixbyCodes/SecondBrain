@@ -11,6 +11,10 @@ router.post("/", async (req, res) => {
 const newNote = await Note.create({ ...req.body, owner: req.userId, embedding });
 console.log("Embedding length:", embedding.length);
 
+    // push the new note live to all of this user's open tabs
+    const io = req.app.get("io");
+    io.to(`user:${req.userId}`).emit("noteCreated", newNote);
+
     res.status(201).json(newNote);
   } catch (error) {
     res.status(400).json({ message: "Failed to create note", error });
