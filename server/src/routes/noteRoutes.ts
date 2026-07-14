@@ -53,6 +53,10 @@ router.patch("/:id",async(req,res)=>{
     if (!notesId) {
       return res.status(404).json({ message: "Note not found" });  // ← the real 404
     }
+
+    const io = req.app.get("io");
+    io.to(`user:${req.userId}`).emit("noteUpdated", notesId);
+
     res.json(notesId);
     }catch(error){
   res.status(500).json({ message: "Something went wrong", error });
@@ -65,6 +69,9 @@ router.delete("/:id", async (req, res) => {
     if (!notesId) {                                                 // ② null → 404
       return res.status(404).json({ message: "Note not found" });
     }
+
+    const io = req.app.get("io");
+    io.to(`user:${req.userId}`).emit("noteDeleted", req.params.id);
 
     res.status(200).json({ message: "Note deleted" });             // ③ success reply
   } catch (error) {

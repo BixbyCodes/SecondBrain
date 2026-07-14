@@ -9,43 +9,55 @@ type NotesProps = {
   onLogout: () => void
 }
 
+const API = 'http://localhost:3000'
+
 function Notes({ token, onLogout }: NotesProps) {
   const [notes, setNotes] = useState<Note[]>([])
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
 
-  // fetch the user's notes once, when this screen first appears
+  // which note is being edited, plus its draft values
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editTitle, setEditTitle] = useState('')
+  const [editContent, setEditContent] = useState('')
+
+  const authHeaders = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  }
+
+  // fetch notes once, when the screen first appears
   useEffect(() => {
     async function fetchNotes() {
-      const res = await fetch('http://localhost:3000/notes', {
-        headers: { 'Authorization': `Bearer ${token}` },
-      })
+      const res = await fetch(`${API}/notes`, { headers: { Authorization: `Bearer ${token}` } })
       const data = await res.json()
       setNotes(data)
     }
     fetchNotes()
   }, [])
 
-  // connect to the live socket; add any note that gets pushed to us
+  // live sync: created / updated / deleted notes push in over the socket
   useEffect(() => {
-    const socket = io('http://localhost:3000', { auth: { token } })
+    const socket = io(API, { auth: { token } })
 
     socket.on('noteCreated', (note: Note) => {
       setNotes((prev) => [note, ...prev])
+    })
+    socket.on('noteUpdated', (note: Note) => {
+      setNotes((prev) => prev.map((n) => (n._id === note._id ? note : n)))
+    })
+    socket.on('noteDeleted', (id: string) => {
+      setNotes((prev) => prev.filter((n) => n._id !== id))
     })
 
     return () => { socket.disconnect() }
   }, [])
 
-  // create a new note — a sibling of useEffect, so the form below can reach it
   async function handleCreate(e: FormEvent) {
     e.preventDefault()
-    const res = await fetch('http://localhost:3000/notes', {
+    const res = await fetch(`${API}/notes`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
+      headers: authHeaders,
       body: JSON.stringify({ title, content }),
     })
     const newNote = await res.json()
@@ -53,10 +65,31 @@ function Notes({ token, onLogout }: NotesProps) {
       alert(newNote.message || 'Failed to create')
       return
     }
-
-    // no local add — the socket 'noteCreated' event updates the list on every tab
+    // the socket 'noteCreated' event adds it to the list (on every tab)
     setTitle('')
     setContent('')
+  }
+
+  async function handleDelete(id: string) {
+    await fetch(`${API}/notes/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
+    // the socket 'noteDeleted' event removes it from the list
+  }
+
+  function startEdit(note: Note) {
+    setEditingId(note._id)
+    setEditTitle(note.title)
+    setEditContent(note.content)
+  }
+
+  async function handleUpdate(e: FormEvent, id: string) {
+    e.preventDefault()
+    await fetch(`${API}/notes/${id}`, {
+      method: 'PATCH',
+      headers: authHeaders,
+      body: JSON.stringify({ title: editTitle, content: editContent }),
+    })
+    setEditingId(null)
+    // the socket 'noteUpdated' event refreshes the note in the list
   }
 
   return (
@@ -90,8 +123,35 @@ function Notes({ token, onLogout }: NotesProps) {
         <div className="notes-list">
           {notes.map((note) => (
             <div key={note._id} className="note-card">
-              <h3>{note.title}</h3>
-              <p>{note.content}</p>
+              {editingId === note._id ? (
+                <form className="form" onSubmit={(e) => handleUpdate(e, note._id)}>
+                  <input
+                    className="input"
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                  />
+                  <textarea
+                    className="input textarea"
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                  />
+                  <div className="note-actions">
+                    <button className="btn btn-primary btn-sm" type="submit">Save</button>
+                    <button className="btn btn-ghost btn-sm" type="button" onClick={() => setEditingId(null)}>
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <>
+                  <h3>{note.title}</h3>
+                  <p>{note.content}</p>
+                  <div className="note-actions">
+                    <button className="btn btn-ghost btn-sm" onClick={() => startEdit(note)}>Edit</button>
+                    <button className="btn btn-danger btn-sm" onClick={() => handleDelete(note._id)}>Delete</button>
+                  </div>
+                </>
+              )}
             </div>
           ))}
         </div>
