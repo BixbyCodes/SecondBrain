@@ -14,6 +14,7 @@ function Notes({ token, onLogout }: NotesProps) {
   const [notes, setNotes] = useState<Note[]>([])
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
+  const [loadingNotes, setLoadingNotes] = useState(true)
 
   // which note is being edited, plus its draft values
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -31,6 +32,7 @@ function Notes({ token, onLogout }: NotesProps) {
       const res = await fetch(`${API}/notes`, { headers: { Authorization: `Bearer ${token}` } })
       const data = await res.json()
       setNotes(data)
+      setLoadingNotes(false)
     }
     fetchNotes()
   }, [])
@@ -116,7 +118,9 @@ function Notes({ token, onLogout }: NotesProps) {
         <button className="btn btn-primary" type="submit">Add note</button>
       </form>
 
-      {notes.length === 0 ? (
+      {loadingNotes ? (
+        <p className="empty">Loading your notes…</p>
+      ) : notes.length === 0 ? (
         <p className="empty">No notes yet — add your first one above ✍️</p>
       ) : (
         <div className="notes-list">

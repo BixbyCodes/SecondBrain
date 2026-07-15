@@ -125,3 +125,5 @@ body {
   background: none; border: none; padding: 0; font: inherit;
   color: var(--accent); cursor: pointer; font-weight: 550;
 }
+.auth-error { color: var(--danger); font-size: 14px; margin: 14px 0 0; text-align: center; }
+.btn:disabled { opacity: 0.55; cursor: default; }
