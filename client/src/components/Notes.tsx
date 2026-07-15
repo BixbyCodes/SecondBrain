@@ -1,6 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react'
 import { io } from 'socket.io-client'
 import Chat from './Chat'
+import { API } from '../config'
 
 type Note = { _id: string; title: string; content: string }
 
@@ -8,8 +9,6 @@ type NotesProps = {
   token: string
   onLogout: () => void
 }
-
-const API = 'http://localhost:3000'
 
 function Notes({ token, onLogout }: NotesProps) {
   const [notes, setNotes] = useState<Note[]>([])

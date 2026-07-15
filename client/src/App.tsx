@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import Notes from './components/Notes'
-
-const API = 'http://localhost:3000'
+import { API } from './config'
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'))

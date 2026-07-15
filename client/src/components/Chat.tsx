@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { API } from "../config"
 
 function Chat({ token }: { token: string }) {
   const [question, setQuestion] = useState("")
@@ -9,7 +10,7 @@ function Chat({ token }: { token: string }) {
     e.preventDefault()
     setLoading(true)
     setAnswer("")
-    const res = await fetch("http://localhost:3000/ai/chat", {
+    const res = await fetch(`${API}/ai/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

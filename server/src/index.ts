@@ -37,7 +37,7 @@ app.get("/health",(req,res)=>{
 
 const httpServer = createServer(app);         
 const io = new Server(httpServer, {
-  cors: { origin: "http://localhost:5173" },   
+  cors: { origin: process.env.CLIENT_URL || "http://localhost:5173" },   
 });
 app.set("io", io);                           
 
